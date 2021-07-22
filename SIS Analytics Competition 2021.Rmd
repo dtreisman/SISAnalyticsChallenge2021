@@ -51,13 +51,9 @@ There are two problems with just looking at target routes. The first is that we 
 
 The second issue, however, is what I will account for in this section. On a given pass play, there are several receivers (including running backs) running various routes. While they are all trying to get open for a pass, their jobs on the field are also part of the strategy behind the play design and one player's route may give a different player a better chance at getting open by fooling the safety or the linebacker in coverage, etc.
 
-In order to attribute value to the supporting routes on a play, I weighted completion over expected ( **Completed Pass (1 or 0) - Predicted Probability of Completed Pass)** value based on the total share of routes of each route type on the play, not including the target receiver. For example, if a play had a completion over expected of 0.5, and had 3 "Short" routes, 1 "Vertical" route, and 1 "Other" route the calculation for each route type would be:
+In order to attribute value to the supporting routes on a play, I distributed a portion of the Completion Over Expected ( **Completed Pass (1 or 0) - Predicted Probability of Completed Pass)** value equally among each individual route on the play.
 
--   **Short Route**: 3/5 \* 0.5 = 0.3
--   **Vertical Route**: 1/5 \* 0.5 = 0.1
--   **Other Route**: 1/5 \* 0.5 = 0.1
-
-The plots below show a break down of the Weighted Completions Over Expected per Play for each target receiver route type. I did not include "Other" here as a facet because the assumption is that "Other" routes such as blocking or pick routes are usually not the intended receiver. However, these types of routes are often helpful in confusing the defense or providing support for a receiver.
+The plots below show a break down of the Completions Over Expected per Play for each target receiver aggregated for each route type. I did not include "Other" here as a facet because the assumption is that "Other" routes such as blocking or pick routes are usually not the intended receiver. However, these types of routes are often helpful in confusing the defense or providing support for a receiver.
 
 ![](supportingroutes_by_target.png)
 
