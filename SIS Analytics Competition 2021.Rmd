@@ -1,9 +1,11 @@
 ---
 title: "Analysis of Routes And Coverage in the NFL"
-subtitle: "Sports Info Solutions Analytics Competition 2021"
 author: "Dani Treisman"
-output: 
-  pdf_document
+subtitle: Sports Info Solutions Analytics Competition 2021
+output:
+  pdf_document: default
+  html_document:
+    theme: paper
 urlcolor: blue
 ---
 
