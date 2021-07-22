@@ -272,7 +272,7 @@ supportingroutes_by_target <- routes_wide_preds %>%
   #expand_limits(y = .07) +
   theme_light() +
   labs(title = "Best Supporting Routes for Each Target Receiver Route",
-       y = "\nWeighted Completions Over Expected per Play",
+       y = "\nCompletions Over Expected per Play",
        x = "Non-Receiver Route Type") +
   facet_wrap(~target_route, scale = "free_y", as.table = T) +
   geom_hline(yintercept = 0) +
@@ -281,25 +281,4 @@ supportingroutes_by_target <- routes_wide_preds %>%
 
 ggsave("supportingroutes_by_target.png", supportingroutes_by_target, width = 11, height = 7)
 
-
-SkillPositionPlayers %>%
-  mutate(route_category = case_when(
-    Route %in% c("Curl", "Comeback", "Jerk", "Out", 
-                 "Over Ball", "Whip") ~ "Short",
-    Route %in% c("Go/Fly", "Fade", "Fade - Back Shoulder", "Seam", 
-                 "Post", "Corner") ~ "Vertical",
-    Route %in% c("Drag", "Dig", "Deep Cross", "Slant") ~ "Crossing",
-    Route %in% c("Angle", "Check & Release", "Chip", "Chip - Curl",
-                 "Chip - Drag", "Chip - Flat", "Chip - Seam", "Flat - Right",
-                 "Flat - Left", "Leak", "Swing - Left", "Swing - Right", 
-                 "Wheel") ~ "Interior",
-    Route %in% c("Beneath", "Screen - Beneath", "Screen - Bubble", "Screen - Drag",
-                 "Screen - Quick", "Screen - RB", "Screen - Shovel", "Screen - TE",
-                 "Screen - Tunnel", "Jet Sweep Pass", "Quick") ~ "Screen",
-    Route %in% c("Corner Post", "Post Corner", "Hitch & Go", "Out & Up", "Sluggo",
-                 "Stick - Nod") ~ "Double Move",
-    T ~ "Other"
-  )) %>%
-  filter(route_category == "Other") %>%
-  count(Route)
 
