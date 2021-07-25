@@ -194,7 +194,7 @@ df_Mod$pred_coverage <- predict(glm_mod_coverage_final, df_Mod, type = "response
 
 
 df_Mod %>%
-  mutate(success_OE = success - pred_coverage) %>%
+  mutate(success_OE = success - pred) %>%
   group_by(CoverageScheme, route_category) %>%
   summarise(mean_success_OE = mean(success_OE),
             n = n(), 
@@ -250,7 +250,7 @@ ggsave("targetroutes_by_coverage.png", targetroutes_by_coverage, width = 11, hei
 
 
 routes_wide_preds <- left_join(routes_wide, 
-                               df_Mod %>% select(GameID, EventID, success, pred_coverage), 
+                               df_Mod %>% select(GameID, EventID, success, pred), 
                                by = c("GameID", "EventID")) %>%
   rowwise() %>%
   mutate(n_routes = sum(across(Other:DoubleMove)))
@@ -260,7 +260,7 @@ supportingroutes_by_target <- routes_wide_preds %>%
   #filter(target_route == "Crossing") %>%
   group_by(target_route) %>%
   pivot_longer(cols = Other:DoubleMove, names_to = "Supporting_Route") %>%
-  mutate(success_OE = success - pred_coverage,
+  mutate(success_OE = success - pred,
          success_OE = success_OE * (value/n_routes)) %>%
   group_by(target_route, Supporting_Route) %>%
   filter(target_route != "Other") %>%
@@ -280,5 +280,193 @@ supportingroutes_by_target <- routes_wide_preds %>%
         strip.background = element_rect(fill = "white"))
 
 ggsave("supportingroutes_by_target.png", supportingroutes_by_target, width = 11, height = 7)
+
+
+# metric stability  -------------------------------------------------------
+
+
+odd_vs_even <- df_Mod %>%
+  filter(Week %in% c("1", "3", "5", "7", "9", "11", "13", "15", "17")) %>%
+  mutate(success_OE = success - pred) %>%
+  group_by(CoverageScheme, route_category) %>%
+  summarise(success_OE = mean(success_OE),
+             n = n()) %>%
+  select(CoverageScheme, route_category, success_OE, n) %>%
+  left_join(
+
+df_Mod %>%
+  filter(Week %in% c("2", "4", "6", "8", "10", "12", "14", "16")) %>%
+  mutate(success_OE = success - pred) %>%
+  group_by(CoverageScheme, route_category) %>%
+  summarise(success_OE = mean(success_OE),
+            n = n()) %>%
+  select(CoverageScheme, route_category, success_OE, n), by = c("CoverageScheme", "route_category")
+
+
+) %>%
+  na.omit() %>%
+  rename(odd_weeks = success_OE.x,
+         even_weeks = success_OE.y) %>%
+  mutate(n = n.x + n.y) %>%
+  filter(n > 20)
+
+odd_even_cor <- round(cor(odd_vs_even$odd_weeks, odd_vs_even$even_weeks)**2, 3)
+
+odd_vs_even_graph <- odd_vs_even %>%
+  ggplot(., aes(odd_weeks, even_weeks)) +
+  geom_point(size = 3, alpha = .8, color = "#314686") +
+  geom_smooth(method = "lm", color = "#C63F32") + 
+  labs(title = "Odd vs. Even Weeks\nTarget Route / Coverage Combos",
+       subtitle = paste0("R-Squared: ", odd_even_cor),
+       x = "Completions Over Expected (per Play)\nOdd Weeks",
+       y = "Completions Over Expected (per Play)\nEven Weeks") +
+  theme_light()
+
+
+early_vs_end <- df_Mod %>%
+  filter(Week %in% c("1", "2", "3", "4", "5", "6", "7", "8", "9")) %>%
+  mutate(success_OE = success - pred) %>%
+  group_by(CoverageScheme, route_category) %>%
+  summarise(success_OE = mean(success_OE),
+            n = n()) %>%
+  select(CoverageScheme, route_category, success_OE, n) %>%
+  left_join(
+    
+    df_Mod %>%
+      filter(Week %in% c("10", "11", "12", "13", "14", "15", "16", "17")) %>%
+      mutate(success_OE = success - pred) %>%
+      group_by(CoverageScheme, route_category) %>%
+      summarise(success_OE = mean(success_OE),
+                n = n()) %>%
+      select(CoverageScheme, route_category, success_OE, n), by = c("CoverageScheme", "route_category")
+    
+  ) %>%
+  na.omit() %>%
+  rename(early_weeks = success_OE.x,
+         end_weeks = success_OE.y) %>%
+  mutate(n = n.x + n.y) %>%
+  filter(n > 20) # removed two outliers
+  
+
+early_end_cor <- round(cor(early_vs_end$early_weeks, early_vs_end$end_weeks)**2, 3)
+
+early_vs_end_graph <- early_vs_end %>%
+  ggplot(., aes(early_weeks, end_weeks)) +
+  geom_point(size = 3, alpha = .8, color = "#314686") +
+  geom_smooth(method = "lm", color = "#C63F32") +
+  labs(title = "First vs. Second Half\nTarget Route / Coverage Combos",
+       subtitle = paste0("R-Squared: ", early_end_cor),
+       x = "Completions Over Expected (per Play)\nFirst Half of Season",
+       y = "Completions Over Expected (per Play)\nSecond Half of Season") +
+  theme_light()
+
+
+stability_graphs <- odd_vs_even_graph + early_vs_end_graph
+
+ggsave("stability_graphs.png", stability_graphs)
+
+
+
+odd_vs_even <- routes_wide_preds %>%
+  left_join(df_Mod %>% select(GameID, EventID, Week), by = c("GameID", "EventID"))  %>%
+  #filter(target_route == "Crossing") %>%
+  filter(Week %in% c("1", "3", "5", "7", "9", "11", "13", "15", "17")) %>%
+  group_by(target_route) %>%
+  pivot_longer(cols = Other:DoubleMove, names_to = "Supporting_Route") %>%
+  mutate(success_OE = success - pred,
+         success_OE = success_OE * (value/n_routes)) %>%
+  group_by(target_route, Supporting_Route) %>%
+  summarise(success_OE = mean(success_OE),
+            n = n()) %>%
+  select(target_route, Supporting_Route, success_OE, n) %>%
+  left_join(
+    
+    routes_wide_preds %>%
+      left_join(df_Mod %>% select(GameID, EventID, Week), by = c("GameID", "EventID"))  %>%
+      filter(Week %in% c("2", "4", "6", "8", "10", "12", "14", "16")) %>%
+      #filter(target_route == "Crossing") %>%
+      group_by(target_route) %>%
+      pivot_longer(cols = Other:DoubleMove, names_to = "Supporting_Route") %>%
+      mutate(success_OE = success - pred,
+             success_OE = success_OE * (value/n_routes)) %>%
+      group_by(target_route, Supporting_Route) %>%
+      summarise(success_OE = mean(success_OE),
+                n = n()) %>%
+      select(target_route, Supporting_Route, success_OE, n),
+    by = c("target_route", "Supporting_Route")
+    
+  ) %>%
+  na.omit() %>%
+  rename(odd_weeks = success_OE.x,
+         even_weeks = success_OE.y) %>%
+  mutate(n = n.x + n.y) %>%
+  filter(n > 20)
+
+odd_even_cor <- round(cor(odd_vs_even$odd_weeks, odd_vs_even$even_weeks)**2, 3)
+
+odd_vs_even_graph <- odd_vs_even %>%
+  ggplot(., aes(odd_weeks, even_weeks)) +
+  geom_point(size = 3, alpha = .8, color = "#314686") +
+  geom_smooth(method = "lm", color = "#C63F32") +
+  labs(title = "Odd vs. Even Weeks\nSupport/Target Route Combos",
+       subtitle = paste0("R-Squared: ", odd_even_cor),
+       x = "Completions Over Expected (per Play)\nOdd Weeks",
+       y = "Completions Over Expected (per Play)\nEven Weeks") +
+  theme_light()
+
+
+early_vs_end <- routes_wide_preds %>%
+  left_join(df_Mod %>% select(GameID, EventID, Week), by = c("GameID", "EventID"))  %>%
+  #filter(target_route == "Crossing") %>%
+  filter(Week %in% c("1", "2", "3", "4", "5", "6", "7", "8", "9")) %>%
+  group_by(target_route) %>%
+  pivot_longer(cols = Other:DoubleMove, names_to = "Supporting_Route") %>%
+  mutate(success_OE = success - pred,
+         success_OE = success_OE * (value/n_routes)) %>%
+  group_by(target_route, Supporting_Route) %>%
+  summarise(success_OE = mean(success_OE),
+            n = n()) %>%
+  select(target_route, Supporting_Route, success_OE, n) %>%
+  left_join(
+    
+    routes_wide_preds %>%
+      left_join(df_Mod %>% select(GameID, EventID, Week), by = c("GameID", "EventID"))  %>%
+      filter(Week %in% c("10", "11", "12", "13", "14", "15", "16", "17")) %>%
+      #filter(target_route == "Crossing") %>%
+      group_by(target_route) %>%
+      pivot_longer(cols = Other:DoubleMove, names_to = "Supporting_Route") %>%
+      mutate(success_OE = success - pred,
+             success_OE = success_OE * (value/n_routes)) %>%
+      group_by(target_route, Supporting_Route) %>%
+      summarise(success_OE = mean(success_OE),
+                n = n()) %>%
+      select(target_route, Supporting_Route, success_OE, n),
+    by = c("target_route", "Supporting_Route")
+    
+  ) %>%
+  na.omit() %>%
+  rename(early_weeks = success_OE.x,
+         end_weeks = success_OE.y) %>%
+  mutate(n = n.x + n.y) %>%
+  filter(n > 20)
+
+early_end_cor <- round(cor(early_vs_end$early_weeks, early_vs_end$end_weeks)**2, 3)
+
+early_vs_end_graph <- early_vs_end %>%
+  ggplot(., aes(early_weeks, end_weeks)) +
+  geom_point(size = 3, alpha = .8, color = "#314686") +
+  geom_smooth(method = "lm", color = "#C63F32") +
+  labs(title = "First vs. Second Half\nSupport/Target Route Combos",
+       subtitle = paste0("R-Squared: ", early_end_cor),
+       x = "Completions Over Expected (per Play)\nFirst Half of Season",
+       y = "Completions Over Expected (per Play)\nSecond Half of Season") +
+  theme_light()
+
+
+stability_graphs_support <- odd_vs_even_graph + early_vs_end_graph
+
+ggsave("stability_graphs_support.png", stability_graphs_support)
+
+
 
 

@@ -26,7 +26,7 @@ As mentioned earlier, I used a Generalized Linear Mixed Model to predict the pro
 The fixed effects are
 
 -   Down
--   YardsToGo - Yards to go for first down
+-   ToGo - Yards to go for first down
 -   SideOfField - Own vs. Opponent
 -   StartYard - Yard line the play started on (paired with SideOfField to get field position)
 -   Shotgun - 1 if the QB lined up in shotgun pre-snap, 0 otherwise
@@ -36,6 +36,8 @@ The fixed effects are
 To account for team skill, I included random effects for both the Offensive and Defensive teams. Lastly, I included random effects for the route type of the target receiver on the play and the coverage scheme.
 
 The model had a validation log-loss of .584, compared to a log-loss of .633 for the naive prediction (mean success of a play: 0.67). I did attempt more complex modeling techniques such as a Random Forest, but the GLMM performed better.
+
+The analysis of the stability of the models can be found in the appendix.
 
 # Target Receiver Route/Coverage Analysis
 
@@ -57,6 +59,8 @@ In order to attribute value to the supporting routes on a play, I distributed a 
 
 The plots below show a break down of the Completions Over Expected per Play for each target receiver aggregated for each route type. I did not include "Other" here as a facet because the assumption is that "Other" routes such as blocking or pick routes are usually not the intended receiver. However, these types of routes are often helpful in confusing the defense or providing support for a receiver.
 
+The values here are quite small and not significant. I do think the sample size is limiting here but I would say from this analysis that supporting routes do not have a strong effect on the outcome of a pass play.
+
 ![](supportingroutes_by_target.png)
 
 # Conclusion
@@ -75,3 +79,15 @@ Thank you for your time in reading this report. You can find me at the various l
 -   Twitter: [\@DaniTreisman](https://twitter.com/DaniTreisman)
 -   [Portfolio](https://dtreisman.github.io/Portfolio/)
 -   [LinkedIn](https://www.linkedin.com/in/dani-treisman/)
+
+# Appendix
+
+In order to determine the stability of Completions Over Expected for the route/coverage combinations, I looked at the R-Squared values within a season. Ideally, I would test this using two/multiple seasons but I only have one season of data. I therefore looked at the correlation between odd and even weeks and between the first and second half of the season. As shown in the graphs below, odd vs. even weeks have very little signal, but first vs. second half have moderate stability with an R-Squared of .114. I only included combinations that appeared more than 20 times.
+
+![](stability_graphs.png)
+
+As shown below, the stability of the Completions Over Expected for supporting route/target route combinations is also moderately stable both within season and from first to second half.
+
+![](stability_graphs_support.png)
+
+There does seem to be many outlier values for both analyses which I believe is a symptom of small sample size since many of the combinations do not occur often.
