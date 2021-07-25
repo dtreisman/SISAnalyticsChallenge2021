@@ -3,13 +3,13 @@
 ### Dani Treisman
 
 
-#### Introduction
+# Introduction
 
 This report is an analysis of route combinations and coverage schemes for the [2021 Sports Info Solutions Analytics Competition](https://www.sportsinfosolutions.com/sports-info-solutions-to-host-2nd-annual-sports-analytics-challenge-to-raise-money-for-the-boys-and-girls-clubs-of-america/). The prompt for the football track of this years competition is: *Which route combinations were most popular in the NFL in 2020? Of these route combinations, which perform best against each coverage type?* This seemed to me to be slightly open ended and offered an opportunity to explore various methods and areas of analysis in regard to routes on passing plays in the NFL. The data for the competition is tracked by SIS and includes data from the 2020 season.
 
 Many analyses in football boil down to an assessment of Expected Points Added for whatever facet of the game the analyst is attempting to evaluate. In the case of Wide Receiver routes, each route has a different objective. While the goal of any play is to get as many yards down the field, throwing deep every play may not be an effective strategy, even though the deep yardage plays have a higher EPA. Offensive passing play calls in football usually involve a large mix of route combinations in order to veil their intentions. It would be easy to defend an offense if the defense knew the opposing quarterback would throw deep every time. Therefore, I evaluate route combinations and coverage schemes from the perspective of play success. I believe that looking at play success is a better starting point for understanding the effectiveness of the different combinations as it mirrors the decisions that likely go into offensive play-calling.
 
-#### Modeling
+# Modeling
 
 For this analysis, I used a Generalized Linear Mixed Model to predict the probability of a completion on each play. While it is generally important to have the most accurate model possible, the goal of this analysis is inferential in nature, so presenting model evaluation is not necessarily as important, although I will include it.
 
@@ -20,7 +20,7 @@ As mentioned earlier, I used a Generalized Linear Mixed Model to predict the pro
 The fixed effects are
 
 -   Down
--   YardsToGo - Yards to go for first down
+-   ToGo - Yards to go for first down
 -   SideOfField - Own vs. Opponent
 -   StartYard - Yard line the play started on (paired with SideOfField to get field position)
 -   Shotgun - 1 if the QB lined up in shotgun pre-snap, 0 otherwise
@@ -31,7 +31,9 @@ To account for team skill, I included random effects for both the Offensive and 
 
 The model had a validation log-loss of .584, compared to a log-loss of .633 for the naive prediction (mean success of a play: 0.67). I did attempt more complex modeling techniques such as a Random Forest, but the GLMM performed better.
 
-#### Target Receiver Route/Coverage Analysis
+The analysis of the stability of the models can be found in the appendix.
+
+# Target Receiver Route/Coverage Analysis
 
 The first step of analyzing route and coverage combinations is to look at the route of the target receiver. The plot below show each route's *Completions Over Expected (COE)* within each coverage type. Play success is defined as a completion. The calculation here is **Completed Pass (1 or 0) - Predicted Probability of Completed Pass.** Since the model includes a random intercept for both coverage type and the target receiver route, the values below represent the value over expectation *within* each pairing, as apposed to the value over expectation of all plays.
 
@@ -51,7 +53,9 @@ In order to attribute value to the supporting routes on a play, I distributed a 
 
 The plots below show a break down of the Completions Over Expected per Play for each target receiver aggregated for each route type. I did not include "Other" here as a facet because the assumption is that "Other" routes such as blocking or pick routes are usually not the intended receiver. However, these types of routes are often helpful in confusing the defense or providing support for a receiver.
 
-![](supportingroutes_by_target.png)  
+The values here are quite small and not significant. I do think the sample size is limiting here but I would say from this analysis that supporting routes do not have a strong effect on the outcome of a pass play.
+
+![](supportingroutes_by_target.png)
 
 # Conclusion
 
@@ -69,3 +73,15 @@ Thank you for your time in reading this report. You can find me at the various l
 -   Twitter: [\@DaniTreisman](https://twitter.com/DaniTreisman)
 -   [Portfolio](https://dtreisman.github.io/Portfolio/)
 -   [LinkedIn](https://www.linkedin.com/in/dani-treisman/)
+
+# Appendix
+
+In order to determine the stability of Completions Over Expected for the route/coverage combinations, I looked at the R-Squared values within a season. Ideally, I would test this using two/multiple seasons but I only have one season of data. I therefore looked at the correlation between odd and even weeks and between the first and second half of the season. As shown in the graphs below, odd vs. even weeks have very little signal, but first vs. second half have moderate stability with an R-Squared of .114. I only included combinations that appeared more than 20 times.
+
+![](stability_graphs.png)
+
+As shown below, the stability of the Completions Over Expected for supporting route/target route combinations is also moderately stable both within season and from first to second half.
+
+![](stability_graphs_support.png)
+
+There does seem to be many outlier values for both analyses which I believe is a symptom of small sample size since many of the combinations do not occur often.
