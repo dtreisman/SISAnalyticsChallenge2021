@@ -13,7 +13,7 @@ Many analyses in football boil down to an assessment of Expected Points Added fo
 
 For this analysis, I used a Generalized Linear Mixed Model to predict the probability of a completion on each play. While it is generally important to have the most accurate model possible, the goal of this analysis is inferential in nature, so presenting model evaluation is not necessarily as important, although I will include it.
 
-In trying to evaluate route and coverage combinations, I attempt to analyze the probability of a successful play versus the expectation. Therefore, only situational variables that occur prior to the pass are included. I removed all non-pass plays and plays with a fumble by the passer. Also, the original data included over 45 individual route types. Using the route definitions given in the competition documents, I binned the route types into 7 categories: Crossing, Vertical, Short, Double Move, Interior, Screen and Other (includes blocking, pick, and run fake).
+In trying to evaluate route and coverage combinations, I attempt to analyze the probability of a successful play versus the expectation. Therefore, only situational variables that occur prior to the pass are included. I removed all non-pass plays and plays with a fumble by the passer. Also, the original data included over 45 individual route types. Using the route definitions given in the competition documents, I binned the route types into 7 categories: Crossing, Vertical, Short, Double Move, Interior, Screen and Other (includes blocking, pick, and run fake). I included routes by all wide receivers, running backs, and tight ends.
 
 As mentioned earlier, I used a Generalized Linear Mixed Model to predict the probability of a completion.
 
